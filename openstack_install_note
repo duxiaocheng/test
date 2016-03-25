@@ -1,3 +1,5 @@
+Openstack install note for centos7 x86_64, 2015/3/25, Chason Du
+
 OpenStack 是一个开源的 IaaS（基础设施及服务）云计算平台.
 OpenStack 由一系列相互关联的项目提供云基础设施解决方案的各个组件，核心项目（9 个）：
 计算 (Compute) - Nova，
