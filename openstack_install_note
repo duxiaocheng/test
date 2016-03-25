@@ -1,0 +1,302 @@
+OpenStack 是一个开源的 IaaS（基础设施及服务）云计算平台.
+OpenStack 由一系列相互关联的项目提供云基础设施解决方案的各个组件，核心项目（9 个）：
+计算 (Compute) - Nova，
+网络和地址管理 - Neutron，
+对象存储 (Object) - Swift，
+块存储 (Block) - Cinder，
+身份 (Identity) - keystone，
+镜像 (Image) - Glance，
+UI 界面 (Dashboard) - Horizon，
+测量 (Metering) - Ceilometer，
+编配 (Orchestration) – Heat。
+
+
+中科大的YUM源：Centos-Base.repo > /etc/yum.repo.d/
+wget https://lug.ustc.edu.cn/wiki/_export/code/mirrors/help/cenos?codeblock=3
+
+===============================================================================
+debug:
+wget -d -r
+vim /etc/log/messages
+vim /etc/log/keystone/keystone.log
+vim /var/log/glance/api.log
+
+===============================================================================
+
+# sudo yum install -y http://rdo.fedorapeople.org/rdo-release.rpm
+或#yum install -y https://rdoproject.org/repos/rdo-release.rpm
+# sudo yum install -y openstack-packstack
+# packstack --allinone
+
+(0).准备
+设置源：OpenStack liberty仓库和epel仓库
+# yum install http://dl.fedoraproject.org/pub/epel/7/x86_64/e/epel-release-7-5.noarch.rpm
+# yum install centos-release-openstack-liberty
+安装ntp时间校准工具：# yum -y install ntp
+安装mysql数据库：# yum -y install mariadb mariadb-server MySQL-python
+安装消息队列服务：# yum -y install rabbitmq-server
+
+===============================================================================
+(1).安装Horizon
+# yum -y install epel-release
+或# yum -y install http://dl.fedoraproject.org/pub/epel/7/x86_64/e/epel-release-7-2.noarch.rpm	
+# yum -y install openstack-dashboard
+# yum install openstack-dashboard httpd mod_wsgi memcached python-memcached
+
+Memcached 是一个高性能的分布式内存对象缓存系统，用于动态Web应用以减轻数据库负载。它通过在内存中缓存数据和对象来减少读取数据库的次数，从而提高动态、数据库驱动网站的速度。
+
+# 运行web服务连接OpenStack服务
+# setsebool -P httpd_can_network_connect on
+
+# systemctl enable httpd.service memcached.service
+# systemctl start httpd.service memcached.service
+
+===============================================================================
+(2).安装Keystone
+
+登录MYSQL数据库重新设置root密码
+# mysql -uroot -p mysql
+Enter password:直接回车进入; 如果刚安装好MYSQL，超级用户root是没有密码的，故直接回车即可进入到MYSQL中了，MYSQL的提示符是： mysql>
+mysql> show databases; 查看所有数据库
+mysql> update user set password=password("mysql") where user='root';
+mysql> flush privileges;
+mysql> use keystone; 切换数据库
+mysql> show tables; 查看所有表
+
+http://www.tuicool.com/articles/UNVVJr
+http://openstack-on-centos6.readthedocs.org/en/latest/keystone.html#openstack-keystone
+# yum install openstack-utils openstack-keystone python-keystoneclient
+# vim /etc/keystone/keystone.conf
+connection= mysql://keystone_admin:988ed0cbe471436a@10.0.3.15/keystone
+admin_token = 8f51a7e3a6e848f8843ccc7470841ace #就是一个随机数，可以参照如下方法设置
+A1：设置admin_token
+# export OS_SERVICE_TOKEN=$(openssl rand -hex 10)
+# export OS_SERVICE_ENDPOINT=http://10.0.3.15:35357/v2.0
+# echo $OS_SERVICE_TOKEN > ~/ks_admin_token
+# openstack-config --set /etc/keystone/keystone.conf DEFAULT admin_token  $OS_SERVICE_TOKEN
+# service openstack-keystone restart
+
+# openstack-db --init --service keystone
+如上命令会根据配置文件/etc/keystone/keystone.conf中的 connection 项，创建 keystone 数据库和 keystone 用户，密码为 keystone。
+# keystone-manage db_sync 同步数据库
+
+http://www.aboutyun.com/thread-13080-1-1.html
+默认keystone服务监听端口5000 和 35357，尽管如此向导配置 Apache HTTP server 监听这些端口，为了避免端口冲突，安装后禁止开机启动keystone 服务
+# service openstack-keystone start # 启动 keystone 服务
+# chkconfig openstack-keystone on  # 设置开机启动服务
+# vim /etc/httpd/conf.d/10-keystone_wsgi_admin.conf 
+# service httpd restart
+
+Question:
+# keystone --debug user-list
+INFO:requests.packages.urllib3.connectionpool:Starting new HTTP connection (1): localhost
+Unable to establish connection to http://10.0.3.15:35357/v2.0/users
+# unset http_proxy #去掉代理
+
+
+# export OS_SERVICE_TOKEN=8f51a7e3a6e848f8843ccc7470841ace
+# export OS_SERVICE_ENDPOINT=http://127.0.0.1:35357/v2.0
+
+a.Create the admin tenant、user、role
+# keystone tenant-create --name admin --description "Admin Tenant"
+# keystone user-create --name admin --pass admin --email admin@zhengyansheng.com
+# keystone role-create --name admin
+
+b.Add the admin tenant and user to the admin role:
+# keystone user-role-add --tenant admin --user admin --role admin
+
+c.By default, the dashboard limits access to users with the _member_ role.
+# keystone role-create --name _member_
+
+d.Add the admin tenant and user to the _member_ role:
+# keystone user-role-add --tenant admin --user admin --role _member_
+
+...
+
+# unset OS_SERVICE_TOKEN 
+# unset OS_SERVICE_ENDPOINT
+
+# keystone --os-tenant-name admin --os-username admin --os-password admin --os-auth-url http://10.0.3.15:35357/v2.0 token-get
+
+# vim ~/admin-openrc.sh 
+export OS_TENANT_NAME=admin
+export OS_USERNAME=admin
+export OS_PASSWORD=admin
+export OS_AUTH_URL=http://10.0.3.15:35357/v2.0
+# source ~/admin-openrc.sh
+
+http://127.0.0.1/dashboard
+用户名: admin, 密码: admin
+Error: Invalid service catalog service: compute
+
+(3).安装glance
+
+# yum -y install openstack-glance python-glanceclient
+# keystone endpoint-create \
+--service-id $(keystone service-list | awk '/ image / {print $2}') \
+--publicurl http://10.0.3.15:9292 \
+--internalurl http://10.0.3.15:9292 \
+--adminurl http://10.0.3.15:9292 \
+--region regionOne
+
+
+# vim /etc/glance/glance-api.conf
+[DEFAULT] 
+verbose = True
+
+[database]
+connection = mysql://glance:glance@10.0.3.15/glance
+
+[keystone_authtoken]
+#auth_uri = http://10.0.3.15:5000/v2.0
+#identity_uri = http://10.0.3.15:35357
+auth_host = 127.0.0.1
+auth_port = 35357
+auth_protocol = http
+admin_tenant_name = service
+admin_user = glance
+admin_password = glance
+
+[paste_deploy]
+flavor = keystone
+
+[glance_store]
+default_store = file
+filesystem_store_datadir = /var/lib/glance/images/
+
+# vim /etc/glance/glance-registry.conf
+[DEFAULT]
+verbose = True
+
+[database]
+connection = mysql://glance:glance@10.0.3.15/glance
+
+[keystone_authtoken]
+#auth_uri = http://10.0.3.15:5000/v2.0
+#identity_uri = http://10.0.3.15:35357
+auth_host = 127.0.0.1
+auth_port = 35357
+auth_protocol = http
+admin_tenant_name = service
+admin_user = glance
+admin_password = glance 
+
+[paste_deploy]
+flavor = keystone
+
+# mysql -uroot -p mysql
+Enter password:
+mysql> update user set password=password("glance") where user='glance';
+mysql> flush privileges;
+# su -s /bin/sh -c "glance-manage db_sync" glance
+
+# systemctl enable openstack-glance-api.service openstack-glance-registry.service
+# systemctl start openstack-glance-api.service openstack-glance-registry.service
+
+# glance image-list
+
+(3).安装Nova-api
+
+# mysql -uroot -p mysql
+Enter password:
+mysql> update user set password=password("nova") where user='nova';
+mysql> flush privileges;
+
+# keystone endpoint-create \
+--service-id $(keystone service-list | awk '/ compute / {print $2}') \
+--publicurl http://10.0.3.15:8774/v2/%\(tenant_id\)s \
+--internalurl http://10.0.3.15:8774/v2/%\(tenant_id\)s \
+--adminurl http://10.0.3.15:8774/v2/%\(tenant_id\)s \
+--region regionOne
+
+# yum -y install openstack-nova-api openstack-nova-cert openstack-nova-conductor openstack-nova-console openstack-nova-novncproxy openstack-nova-scheduler python-novaclient
+# yum -y install openstack-nova-compute sysfsutils
+
+
+# cp /etc/nova/nova.conf /etc/nova/nova.conf.bak
+# vim /etc/nova/nova.conf
+[DEFAULT]
+my_ip = 10.0.3.15
+vncserver_listen = 10.0.3.15
+vncserver_proxyclient_address = 10.0.3.15
+verbose = True
+rpc_backend = rabbit
+rabbit_host = 10.0.3.15
+# rabbitmq 用户rabbit的密码，可修改，# rabbitmqctl change_password guest rabbit
+rabbit_password = guest
+auth_strategy = keystone
+vnc_enabled = True
+vncserver_listen = 0.0.0.0
+vncserver_proxyclient_address = 10.0.3.15
+novncproxy_base_url = http://10.0.3.15:6080/vnc_auto.html
+
+[database]
+connection = mysql://nova:nova@10.0.3.15/nova
+
+[keystone_authtoken]
+auth_uri = http://10.0.3.15:5000/v2.0
+identity_uri = http://10.0.3.15:35357
+admin_tenant_name = service
+admin_user = nova
+admin_password = nova
+
+[glance]
+host = 10.0.3.15
+
+[libvirt]
+virt_type = qemu
+
+# su -s /bin/sh -c "nova-manage db sync" nova
+IOError: [Errno 13] Permission denied: '/var/log/nova/nova-manage.log'
+# ls /var/log/nova/nova-manage.log -al
+-rw-r--r--. 1 root root 7871 Mar 21 11:43 /var/log/nova/nova-manage.log
+# chmod 777 /var/log/nova/nova-manage.log 
+# ls /var/log/nova/nova-manage.log -al
+-rwxrwxrwx. 1 root root 7871 Mar 21 11:43 /var/log/nova/nova-manage.log
+
+
+# systemctl start openstack-nova-compute.service 长时间没反应
+^C
+# vim /var/log/nova/nova-compute.log
+2016-03-22 09:03:56.713 19107 WARNING oslo_config.cfg [req-a3886fc9-7f14-4d4f-89fa-4c41d75a0cc1 - - - - -] Option "rabbit_host" from group "DEFAULT" is deprecated. Use option "rabbit_host" from group "oslo_messaging_rabbit".
+2016-03-22 09:03:56.714 19107 WARNING oslo_config.cfg [req-a3886fc9-7f14-4d4f-89fa-4c41d75a0cc1 - - - - -] Option "rabbit_password" from group "DEFAULT" is deprecated. Use option "rabbit_password" from group "oslo_messaging_rabbit".
+2016-03-22 09:03:56.787 19107 INFO oslo.messaging._drivers.impl_rabbit [req-a3886fc9-7f14-4d4f-89fa-4c41d75a0cc1 - - - - -] Connecting to AMQP server on 10.0.3.15:5672
+2016-03-22 09:03:59.817 19107 ERROR oslo.messaging._drivers.impl_rabbit [req-a3886fc9-7f14-4d4f-89fa-4c41d75a0cc1 - - - - -] AMQP server 10.0.3.15:5672 closed the connection. Check login credentials: Socket closed
+# vim /etc/nova/nova.conf
+正确配置rabbit_password = guest，同步数据库，重启所有nova服务
+
+
+# service openstack-nova-api start
+# chkconfig openstack-nova-api on
+
+
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# start mariadb server for database
+systemctl start mariadb.service
+#systemctl mariadb.service status
+
+# start rabbitmq-server for message queue
+systemctl start rabbitmq-server.service
+#systemctl rabbitmq-server.service status
+
+# start keystone servers, start with httpd
+# systemctl start openstack-keystone.service
+source ~/admin-openrc.sh
+
+# start glance servers
+systemctl start openstack-glance-api.service openstack-glance-registry.service
+
+# start nova servers
+systemctl start openstack-nova-api.service openstack-nova-cert.service \
+  openstack-nova-consoleauth.service openstack-nova-scheduler.service \
+  openstack-nova-conductor.service openstack-nova-novncproxy.service
+
+systemctl start libvirtd.service
+systemctl start openstack-nova-compute.service
+
+# start dashboard server
+setsebool -P httpd_can_network_connect on
+systemctl start httpd.service memcached.service
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
