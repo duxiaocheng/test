@@ -1,0 +1,33 @@
+CentOS 7 install YCM note, 2016/3/25 Chason Du
+http://www.tuicool.com/articles/yquEZzb
+
+# yum install clang
+# yum install python-devel
+# vim .vimrc
+" vundle config
+set nocompatible
+filetype off
+set rtp+=~/.vim/bundle/vundle/
+call vundle#rc()
+
+Plugin 'gmarik/vundle'
+filetype plugin indent on
+Bundle 'Valloric/YouCompleteMe'
+
+" YouCompleteMe
+" ~/.vim/bundle/YouCompleteMe/third_party/ycmd/cpp/ycm/.ycm_extra_conf.py
+let g:ycm_global_ycm_extra_conf = './.ycm_extra_conf.py'
+let g:ycm_confirm_extra_conf = 0 " Do not ask when starting vim
+let g:ycm_autoclose_preview_window_after_completion=1
+
+let mapleader = ','
+nnoremap <F4> :YcmDiags<CR>
+nnoremap <F5> :YcmForceCompileAndDiagnostics<CR>
+nnoremap <leader>g :YcmCompleter GoToDefinitionElseDeclaration<CR>
+
+filetype plugin indent on
+
+# open vim，run :BundleInstall or run vim +BundleInstall +qall in shell
+# cd .vim/bundle/YouCompleteMe
+# ./install.py --clang-completer
+# vim ./.ycm_extra_conf.py # add path /usr/inclue to isystem
