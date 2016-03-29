@@ -1,0 +1,126 @@
+CentOS 6 install hadoop note, 2016/3/25 Chason Du
+
+Hadoop安装教程_单机/伪分布式配置_Hadoop2.6.0/Ubuntu14.04
+http://www.powerxing.com/install-hadoop/
+Hadoop2.6.0版本搭建伪分布式环境
+http://blog.csdn.net/stark_summer/article/details/43484545
+
+# cd /usr/local
+
+========================
+1. install 
+========================
+# tar -xvf hadoop-2.7.2.tar.gz
+# ln -s hadoop-2.7.2 hadoop
+# tar -xvf jdk-7u67-linux-i586.tar.gz
+# ln -s jdk-7u67-linux-i586 jdk
+
+# vim /etc/profile
+export HADOOP_HOME=/usr/local/hadoop-2.7.2
+export JAVA_HOME=/usr/local/jdk1.7.0_67
+export PATH=$PATH:$JAVA_HOME/bin:$HADOOP_HOME/bin:$HADOOP_HOME/sbin
+
+export HADOOP_COMMON_HOME=$HADOOP_HOME
+export HADOOP_HDFS_HOME=$HADOOP_HOME
+export HADOOP_MAPRED_HOME=$HADOOP_HOME
+export HADOOP_YARN_HOME=$HADOOP_HOME
+export HADOOP_CONF_DIR=$HADOOP_HOME/etc/hadoop
+export HADOOP_COMMON_LIB_NATIVE_DIR=$HADOOP_HOME/lib/native
+export HADOOP_OPTS="-Djava.library.path=$HADOOP_HOME/lib"
+
+# source /etc/profile
+
+#java -version
+java version "1.6.0_24"
+OpenJDK Runtime Environment (IcedTea6 1.11.1) (rhel-1.45.1.11.1.el6-i386)
+OpenJDK Client VM (build 20.0-b12, mixed mode)
+
+#hadoop version
+Hadoop 2.7.2
+Subversion https://git-wip-us.apache.org/repos/asf/hadoop.git -r b165c4fe8a74265c792ce23f546c64604acf0e41
+Compiled by jenkins on 2016-01-26T00:08Z
+Compiled with protoc 2.5.0
+From source with checksum d0fda26633fa762bff87ec759ebe689c
+This command was run using /usr/local/hadoop-2.7.2/share/hadoop/common/hadoop-common-2.7.2.jar
+
+========================
+2. config
+========================
+# vim /etc/hosts
+135.242.80.12 hadoop
+
+# cd /usr/local/hadoop/etc/hadoop
+
+# vim hadoop-env.sh
+export JAVA_HOME=/usr/local/jdk
+
+# vim core-site.xml
+<configuration>
+	<property>
+		<name>fs.default.name</name>
+		<value>hdfs://hadoop:9000</value>
+	</property>
+</configuration>
+
+# vim hdfs-site.xml
+<configuration>
+        <property>
+             <name>dfs.replication</name>
+             <value>1</value>
+        </property>
+        <property>
+             <name>dfs.namenode.name.dir</name>
+             <value>file:/usr/local/hadoop/tmp/dfs/name</value>
+        </property>
+        <property>
+             <name>dfs.datanode.data.dir</name>
+			 <!-- hadoop fs -put file is stored here -->
+             <value>file:/usr/local/hadoop/tmp/dfs/data</value>
+        </property>
+</configuration>
+
+# hdfs namenode -format # 成功: "successfully formatted"和"Exitting with status 0", "Exitting with status 1"出错。
+
+关于Hadoop配置项的一点说明
+虽然只需要配置 fs.defaultFS 和 dfs.replication 就可以运行（官方教程如此），不过若没有配置 hadoop.tmp.dir 参数，
+则默认使用的临时目录为 /tmp/hadoo-hadoop，而这个目录在重启时有可能被系统清理掉，导致必须重新执行 format 才行。
+所以我们进行了设置，同时也指定 dfs.namenode.name.dir 和 dfs.datanode.data.dir，否则在接下来的步骤中可能会出错。
+
+========================
+3. SSH install and login without password
+========================
+# yum install openssh-server
+# ssh localhost # 需要输入密码
+# exit
+# cd ~/.ssh/                     # 若没有该目录，请先执行一次ssh localhost
+# ssh-keygen -t rsa              # 会有提示，都按回车就可以
+# cat ./id_rsa.pub >> ./authorized_keys  # 加入授权
+# ssh localhost # 不再需要输入密码
+
+========================
+4. start hadoop daemon process server
+========================
+# start-dfs.sh
+#jps
+393 NameNode
+854 ResourceManager
+695 SecondaryNameNode
+503 DataNode
+1946 Jps
+965 NodeManager
+
+========================
+5. test
+========================
+# hadoop fs -ls
+# hadoop fs -put ./hello.txt /
+目前的配置是一个文件存储一份，存储是文件大小按照默认的128MB 切分文件
+可查看file:/usr/local/hadoop/tmp/dfs/data
+
+http://hadoop:50070
+
+========================
+6. stop
+========================
+# stop-all.sh
+
