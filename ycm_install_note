@@ -3,7 +3,9 @@ http://www.tuicool.com/articles/yquEZzb
 
 # yum install clang
 # yum install cmake
+# vim --version | grep python
 # yum install python-devel
+# git clone https://github.com/gmarik/Vundle.vim.git ~/.vim/bundle/Vundle.vim
 # vim .vimrc
 " vundle config
 set nocompatible
