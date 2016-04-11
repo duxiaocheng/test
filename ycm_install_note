@@ -31,8 +31,18 @@ nnoremap <leader>g :YcmCompleter GoToDefinitionElseDeclaration<CR>
 filetype plugin indent on
 
 # open vim，run :BundleInstall or run vim +BundleInstall +qall in shell
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # cd .vim/bundle/YouCompleteMe
 # ./install.py --clang-completer
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+We can also compile the YCM using cmake directly.
+# mkdir ~/ycm-build
+# cd ~/ycm-build
+# cmake -G "Unix Makefiles" -DUSE_SYSTEM_LIBclang=ON 
+-DEXTERNAL_LIBCLANG_PATH=/usr/local/lib/libclang.so . ~/.vim/bundle/YouCompleteMe/cpp
+# make ycm_core # for libclang.so and ycm_core.so
+# make ycm_support_libs # for ycm_client_support.so
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # vim ./.ycm_extra_conf.py # add path /usr/inclue to isystem
 
 =========================================
