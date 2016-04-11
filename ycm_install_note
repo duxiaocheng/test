@@ -38,16 +38,23 @@ filetype plugin indent on
 =========================================
 You can get the ycm err log path info by running [:YcmDebugInfo]
 
-[Question] While ./install.py --clang-completer， report error as follows：
+[Q] While ./install.py --clang-completer， report error as follows：
 CMake Error at ycm/CMakeLists.txt:63 (message):
   No pre-built Clang 3.7.0 binaries for 32 bit linux.  You'll have to compile
   Clang 3.7.0 from source.  See the YCM docs for details on how to use a
   user-compiled libclang.
-[Solution] change the command to ./install.py --clang-completer --system-libclang
+[A] change the command to ./install.py --clang-completer --system-libclang
 
-[Question] ImportError: libclang.so.3.7: cannot open shared object file: No such file or directory
-[Solution] "locate libclang.so.3.7" to get the lib path, and add the lib path to /etc/ld.so.conf,
+[Q] ImportError: libclang.so.3.7: cannot open shared object file: No such file or directory
+[A] "locate libclang.so.3.7" to get the lib path, and add the lib path to /etc/ld.so.conf,
 and in the end, run "sudo ldconfig"
 
+[Q] While run "./install.py --clang-completer --system-libclang", get the error as follows:
+Using external libclang: /root/.vim/bundle/YouCompleteMe/third_party/ycmd/cpp/ycm/TEMP-NOTFOUND
+...
+CMake Error: The following variables are used in this project, but they are set to NOTFOUND.
+[A] ln -s /usr/local/lib/libclang.so.3.7 /usr/local/lib/libclang.so
 
-
+[Q] ImportError: /root/.vim/plugged/YouCompleteMe/third_party/ycmd/ycmd/../ycm_core.so: undefined symbol: 
+clang_parseTranslationUnit2FullArgv
+[A] Maybe it's because clang is still version 3.7, youcompleteme requires 3.8.
