@@ -78,6 +78,9 @@ filetype on
 au BufNewFile,BufRead *.mpch set filetype=chill
 au BufNewFile,BufRead *.chh set filetype=chill
 
+" step1: mkdir -p ~/.vim/bundle
+" step2: open vim and run command :PluginInstall
+
 " vundle config
 filetype off
 set rtp+=~/.vim/bundle/vundle/
