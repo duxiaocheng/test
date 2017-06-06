@@ -1,0 +1,14 @@
+https://github.com/ageitgey/face_recognition
+
+================================
+pip install face_recognition
+
+yum install cmake
+yum install boost boost-python boost-devel
+yum install opencv
+yum install gcc
+yum install python-devel
+
+pip install scikit-image
+pip install dlib
+
