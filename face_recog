@@ -1,14 +1,18 @@
-https://github.com/ageitgey/face_recognition
-
-================================
 pip install face_recognition
 
 yum install cmake
 yum install boost boost-python boost-devel
-yum install opencv
+yum install opencv opencv-python
 yum install gcc
-yum install python-devel
+yum install python-devel python-imaging
+yum install ImageMagick libXv
 
 pip install scikit-image
 pip install dlib
 
+TypeError: norm() got an unexpected keyword argument 'axis'
+https://stackoverflow.com/questions/20168596/linalg-norm-not-taking-axis-argument
+
+Python PIL show() not working
+https://www.thecodingforums.com/threads/python-pil-and-vista-windows-7-show-not-working.707158/
+http://blog.csdn.net/luoshenzhisi/article/details/45013749
