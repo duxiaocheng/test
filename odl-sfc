@@ -1,0 +1,40 @@
+CentOS 7 install OpenDayLight SFC:
+
+================
+# yum install -y python34 python34-devel python34-pip
+# yum install -y openssl openssl-devel
+# yum install -y gcc git java-1.8.0-openjdk*
+# yum install -y maven // or install higher version manually
+# yum install -y npm patch
+# yum groupinstall "Development Tools"
+# pip3 install requests flask netifaces paramiko
+
+# vim ~/.m2/settings.xml to set parent pom and proxy.
+
+# git clone http://git.opendaylight.org/gerrit/sfc
+# git checkout stable/carbon
+# mvn clean install -DskipTests
+
+================
+Q1: maven proxy setting
+modify /etc/maven/setting.xml: add proxy or mirror configuration
+
+Q2: Error: bower ESUDO         Cannot be run with sudo
+echo '{ "allow_root": true }' > /root/.bowerrc
+
+Q3: Error, cannot find the SNAPSHOT
+Make sure the snapshot is exist in parent pom.
+<parent>
+    <groupId>org.opendaylight.odlparent</groupId>
+    <artifactId>odlparent</artifactId>
+    <version>1.8.1-SNAPSHOT</version>
+    <relativePath />
+</parent>
+https://nexus.opendaylight.org/content/repositories/opendaylight.snapshot/org/opendaylight/odlparent/odlparent/1.8.1-SNAPSHOT/
+
+===============
+Reference:
+http://www.sdnlab.com/13826.html
+http://www.linuxidc.com/Linux/2015-12/126930.htm
+https://stackoverflow.com/questions/25672924/run-bower-from-root-user-its-possible-how
+
