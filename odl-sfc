@@ -15,6 +15,30 @@ CentOS 7 install OpenDayLight SFC:
 # git checkout stable/carbon
 # mvn clean install -DskipTests
 
+# ./sfc-karaf/target/assembly/bin/karaf
+
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+Another method: install binary
+# wget https://nexus.opendaylight.org/content/groups/public/org/opendaylight/integration/distribution-karaf/0.3.0-Lithium/distribution-karaf-0.3.0-Lithium.zip
+# unzip distribution-karaf-0.3.0-Lithium.zip
+# cd distribution-karaf-0.3.0-Lithium/
+# ./bin/karaf
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
+# opendaylight-user@root>feature:list
+# opendaylight-user@root>feature:list | grep l2switch
+feature:install <feature1-name> <feature2-name> ... <featureN-name>
+
+# opendaylight-user@root>feature:install odl-restconf
+# opendaylight-user@root>feature:install odl-l2switch-switch
+# opendaylight-user@root>feature:install odl-openflowplugin-all
+# opendaylight-user@root>feature:install odl-mdsal-apidocs
+# opendaylight-user@root>feature:install odl-dlux-core
+# opendaylight-user@root>feature:install odl-dlux-all
+# opendaylight-user@root>feature:install odl-adsal-northbound
+
+http://localhost:8181/index.html
+
 ================
 Q1: maven proxy setting
 modify /etc/maven/setting.xml: add proxy or mirror configuration
@@ -22,7 +46,7 @@ modify /etc/maven/setting.xml: add proxy or mirror configuration
 Q2: Error: bower ESUDO         Cannot be run with sudo
 echo '{ "allow_root": true }' > /root/.bowerrc
 
-Q3: Error, cannot find the SNAPSHOT
+Q3: Error, Could not find the SNAPSHOT
 Make sure the snapshot is exist in parent pom.
 <parent>
     <groupId>org.opendaylight.odlparent</groupId>
@@ -32,9 +56,44 @@ Make sure the snapshot is exist in parent pom.
 </parent>
 https://nexus.opendaylight.org/content/repositories/opendaylight.snapshot/org/opendaylight/odlparent/odlparent/1.8.1-SNAPSHOT/
 
+Q4: No listening port 8181/8080
+opendaylight-user@root>feature:install odl-restconf
+
+Q5: Error executing command: No feature named 'odl-l2switch-switch' with version '0.0.0' available
+modify sfc-karaf/pom.xml and then mvn clean install -DskipTests
+    <dependency>
+      <groupId>org.opendaylight.l2switch</groupId>
+      <artifactId>features4-l2switch</artifactId>
+      <version>${project.version}</version>
+      <classifier>features</classifier>
+      <type>xml</type>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.opendaylight.openflowplugin</groupId>
+      <artifactId>features4-openflowplugin</artifactId>
+      <version>0.4.2-SNAPSHOT</version>
+      <classifier>features</classifier>
+      <type>xml</type>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.opendaylight.dlux</groupId>
+      <artifactId>features-dlux</artifactId>
+      <version>${project.version}</version>
+      <classifier>features</classifier>
+      <type>xml</type>
+      <scope>runtime</scope>
+    </dependency>
+
 ===============
 Reference:
+https://wiki.opendaylight.org/view/Service_Function_Chaining:Main
 http://www.sdnlab.com/13826.html
+http://www.sdnlab.com/1931.html
 http://www.linuxidc.com/Linux/2015-12/126930.htm
 https://stackoverflow.com/questions/25672924/run-bower-from-root-user-its-possible-how
+http://www.sdnlab.com/community/question/161
+http://blog.csdn.net/xxb249/article/details/49256031
+
 
