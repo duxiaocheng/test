@@ -1,6 +1,6 @@
 CentOS 7 install OpenDayLight SFC:
 
-================
+===================
 # yum install -y python34 python34-devel python34-pip
 # yum install -y openssl openssl-devel
 # yum install -y gcc git java-1.8.0-openjdk*
@@ -16,9 +16,14 @@ CentOS 7 install OpenDayLight SFC:
 # mvn clean install -DskipTests
 
 # ./sfc-karaf/target/assembly/bin/karaf
+# opendaylight-user@root>feature:list | grep sfc
+# opendaylight-user@root>feature:install odl-sfc-model
+# opendaylight-user@root>feature:install odl-sfc-provider odl-sfc-provider-rest odl-sfc-netconf odl-sfc-ios-xe-renderer odl-sfc-ovs odl-sfc-scf-openflow odl-sfc-scf-vpp odl-sfc-openflow-renderer odl-sfc-vpp-renderer odl-sfclisp odl-sfc-sb-rest odl-sfc-pot odl-sfc-pot-netconf-renderer odl-sfc-ui odl-sfc-test-consumer odl-sfc-vnfm-tacker odl-sfc-genius
+
+http://localhost:8181/index.html
 
 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-Another method: install binary
+Install OpenDayLight Project from Binary
 # wget https://nexus.opendaylight.org/content/groups/public/org/opendaylight/integration/distribution-karaf/0.3.0-Lithium/distribution-karaf-0.3.0-Lithium.zip
 # unzip distribution-karaf-0.3.0-Lithium.zip
 # cd distribution-karaf-0.3.0-Lithium/
@@ -95,5 +100,4 @@ http://www.linuxidc.com/Linux/2015-12/126930.htm
 https://stackoverflow.com/questions/25672924/run-bower-from-root-user-its-possible-how
 http://www.sdnlab.com/community/question/161
 http://blog.csdn.net/xxb249/article/details/49256031
-
 
