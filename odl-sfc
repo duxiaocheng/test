@@ -6,6 +6,8 @@ CentOS 7 install OpenDayLight SFC:
 # yum install -y gcc git java-1.8.0-openjdk*
 # yum install -y maven // or install higher version manually
 # yum install -y npm patch
+# yum install -y libnfnetlink*
+# yum install -y libnetfilter_queue*
 # yum groupinstall "Development Tools"
 # pip3 install requests flask netifaces paramiko
 
@@ -19,6 +21,8 @@ CentOS 7 install OpenDayLight SFC:
 # opendaylight-user@root>feature:list | grep sfc
 # opendaylight-user@root>feature:install odl-sfc-model
 # opendaylight-user@root>feature:install odl-sfc-provider odl-sfc-provider-rest odl-sfc-netconf odl-sfc-ios-xe-renderer odl-sfc-ovs odl-sfc-scf-openflow odl-sfc-scf-vpp odl-sfc-openflow-renderer odl-sfc-vpp-renderer odl-sfclisp odl-sfc-sb-rest odl-sfc-pot odl-sfc-pot-netconf-renderer odl-sfc-ui odl-sfc-test-consumer odl-sfc-vnfm-tacker odl-sfc-genius
+Or install single below feature:
+# opendaylight-user@root>feature:install features4-sfc
 
 http://localhost:8181/index.html
 
@@ -91,6 +95,10 @@ modify sfc-karaf/pom.xml and then mvn clean install -DskipTests
       <scope>runtime</scope>
     </dependency>
 
+Q6: ImportError: No module named 'sfc' while running python3 ./sff_client.py
+yum install libnfnetlink*
+yum install libnetfilter_queue*
+cd sf_py; python3 setup.py install
 ===============
 Reference:
 https://wiki.opendaylight.org/view/Service_Function_Chaining:Main
@@ -100,4 +108,5 @@ http://www.linuxidc.com/Linux/2015-12/126930.htm
 https://stackoverflow.com/questions/25672924/run-bower-from-root-user-its-possible-how
 http://www.sdnlab.com/community/question/161
 http://blog.csdn.net/xxb249/article/details/49256031
+
 
